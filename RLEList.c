@@ -2,18 +2,20 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define NULL_POINTER -1
 #define RLE_NOT_SUCCESS 0
 
+#define ENCODE_FOMAT ("%c%d\n")
 
-typedef struct RLEList_t{
+struct RLEList_t{
     //TODO: implement
     char letter;
     int num_in_row;
-    struct rlelist* next;
+    RLEList next;
 
-}*RLEList; // Name for the pointer of the structor.
+};
 
 //implement the functions here
 
@@ -24,7 +26,7 @@ RLEList RLEListCreate(){
         return NULL; //####### need to add the error enum.
     }
     //Allocations worked. Creating the Node.
-    ptr->letter = "";
+    ptr->letter = 0;
     ptr->num_in_row = 0;
     ptr->next = NULL;
     return ptr;
@@ -51,7 +53,7 @@ RLEListResult RLEListAppend(RLEList list, char value){
     while(list->next){
             list = list->next;
         }
-    if(list->letter == "" || list->letter == value){ // The char needs to be added to the list. 
+    if(list->letter == 0 || list->letter == value){ // The char needs to be added to the list.
         list->letter = value;
         list->num_in_row += 1;
         return RLE_LIST_SUCCESS;
@@ -66,7 +68,7 @@ RLEListResult RLEListAppend(RLEList list, char value){
         newList->num_in_row = 1;
         newList->next = NULL;
         return RLE_LIST_SUCCESS;
-        
+
     }
 }
 
@@ -87,41 +89,40 @@ int RLEListSize(RLEList list){
 }
 
 RLEListResult RLEListRemove(RLEList list, int index){
-//RLEListRemove: Removes a character found at a specified index in an RLE list.
+    //RLEListRemove: Removes a character found at a specified index in an RLE list.
     int count_chars = 0;
     assert(list);
     assert(index > 0);
-    if(!list || !index){
+    if(!list || !index) {
         return RLE_LIST_NULL_ARGUMENT;
     }
-    else{
-        RLEList previus_list = list;
-        while(list){
-            if(!list){ // Index is out of bound.
-                return RLE_LIST_INDEX_OUT_OF_BOUNDS;
+
+    RLEList previus_node = list;
+
+    while(list){
+        if ((count_chars + list->num_in_row) > index){
+            list->num_in_row--;
+            if(0 == list->num_in_row) { 
+                // Was a Lone char in it's own RLElist.
+                previus_node->next = list->next;
+                free(list);
             }
-            if((count_chars+list->num_in_row) >= index){
-                list->num_in_row--;
-                if(!list->num_in_row){ // Was a Lone char in it's own RLElist.
-                    previus_list->next = list->next
-                    free(list);
-                }
-                return RLE_LIST_SUCCESS;
-            }
-            else{
-                count_chars += list->num_in_row;
-                previus_list = list;
-                list = list->next;
-            }
-        }   
+            return RLE_LIST_SUCCESS;
+        } else {
+            count_chars += list->num_in_row;
+            previus_node = list;
+            list = list->next;
+        }
     }
+
+    return RLE_LIST_INDEX_OUT_OF_BOUNDS;
 
 }
 
 char RLEListGet(RLEList list, int index, RLEListResult *result){
 //RLEListGet: Returns the character found at a specified index in an RLE list.
     int count_chars = 0;
-    char letter_to_get = "";
+    char letter_to_get = 0;
     assert(list);
     assert(index > 0);
     assert(result);
@@ -153,18 +154,62 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
     }
 }
 
+static int get_digits_len(int num)  {
+    int counter = 1;
+    while (0 != num / 10 ) {
+        counter ++;
+        num /= 10;
+    }
+    return counter;
+}
+
+static int calc_encoded_list_len(RLEList list) {
+    int len = 0;
+    while (!list)
+    {
+        len = 1 + get_digits_len(list->num_in_row) + 1;
+        list = list->next;
+    }
+
+    return len;
+}
+
 char* RLEListExportToString(RLEList list, RLEListResult* result){
 // RLEListExportToString: Returns the characters found in an RLE list as a string.
     assert(list);
     assert(result);
-    char* strList = "";
-    
-    if(result){
-        if(!list){
+    if(!list){
+        if(result) {
             *result = RLE_LIST_NULL_ARGUMENT;
         }
-        while(list){
-            
-        }
+        return NULL;
     }
+
+    int encoded_list_len = calc_encoded_list_len(list);
+    char* encoded_list = (char *)malloc(encoded_list_len + 1);
+    int letters_written = 0;
+    
+    while(list) {
+        letters_written = sprintf(encoded_list, ENCODE_FOMAT, list->letter, list->num_in_row);
+        encoded_list += letters_written;
+        list = list->next;
+    }
+
+    return encoded_list;
+}
+
+RLEListResult RLEListMap(RLEList list, MapFunction map_function) {
+    assert(list);
+    assert(map_function);
+
+    if(!list || !map_function) {
+        return RLE_LIST_NULL_ARGUMENT;
+    }
+
+    while(list) {
+        list->letter = map_function(list->letter);
+        list = list->next;
+    }
+
+    return RLE_LIST_SUCCESS;
 }

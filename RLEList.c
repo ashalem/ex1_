@@ -23,7 +23,7 @@ RLEList RLEListCreate(){
 // RLEListCreate: Allocates a new empty RLE list.
     RLEList ptr = malloc(sizeof(*ptr)); // Dynamic allocation.
     if(!ptr){ // Checks if the pointer is null.
-        return NULL; //####### need to add the error enum.
+        return NULL; 
     }
     //Allocations worked. Creating the Node.
     ptr->letter = 0;
@@ -92,7 +92,7 @@ RLEListResult RLEListRemove(RLEList list, int index){
     //RLEListRemove: Removes a character found at a specified index in an RLE list.
     int count_chars = 0;
     assert(list);
-    assert(index > 0);
+    assert(index >= 0);
     if(!list || !index) {
         return RLE_LIST_NULL_ARGUMENT;
     }
@@ -124,34 +124,37 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
     int count_chars = 0;
     char letter_to_get = 0;
     assert(list);
-    assert(index > 0);
-    assert(result);
-    if(result){
-        if(!list){
+    assert(index >= 0);
+
+    if(!list){
+        if (result) {
             *result = RLE_LIST_NULL_ARGUMENT;
         }
-        while(list){
-            if(!list){ // Index is out of bound.
-                *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
-                break;
-            }
-            else if((count_chars+list->num_in_row) >= index){
-                letter_to_get = list->letter;
-                *result = RLE_LIST_SUCCESS;
-                break;
-                }
-            else{
-                count_chars += list->num_in_row;
-                list = list->next;
-            }
-        }
-    }
-    if(*result == RLE_LIST_SUCCESS){
-            return letter_to_get;
-    }
-    else{
         return RLE_NOT_SUCCESS;
     }
+
+    while(list){
+        if((count_chars+list->num_in_row) > index){
+            letter_to_get = list->letter;
+            break;
+        }else {
+            count_chars += list->num_in_row;
+            list = list->next;
+        }
+    }
+
+    if (!list) {
+        if (result) {
+            *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
+        }
+        return RLE_NOT_SUCCESS;
+    }
+
+    if(result) {
+        *result = RLE_LIST_SUCCESS;
+    }
+
+    return letter_to_get;
 }
 
 static int get_digits_len(int num)  {
@@ -177,7 +180,6 @@ static int calc_encoded_list_len(RLEList list) {
 char* RLEListExportToString(RLEList list, RLEListResult* result){
 // RLEListExportToString: Returns the characters found in an RLE list as a string.
     assert(list);
-    assert(result);
     if(!list){
         if(result) {
             *result = RLE_LIST_NULL_ARGUMENT;
@@ -187,6 +189,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
 
     int encoded_list_len = calc_encoded_list_len(list);
     char* encoded_list = (char *)malloc(encoded_list_len + 1);
+    char *encoded_head = encoded_list;
     int letters_written = 0;
     
     while(list) {
@@ -195,7 +198,10 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
         list = list->next;
     }
 
-    return encoded_list;
+    if(result) {
+        *result = RLE_LIST_SUCCESS;
+    }
+    return encoded_head;
 }
 
 RLEListResult RLEListMap(RLEList list, MapFunction map_function) {

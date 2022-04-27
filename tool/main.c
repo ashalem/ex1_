@@ -17,7 +17,7 @@ typedef enum {
 
 typedef void (*AsciiModifyFunction)(FILE *, FILE *);
 
-char invert_char(char char_to_invert) {
+static char invert_char(char char_to_invert) {
     if (INVERT_LEFT == char_to_invert) {
         return INVERT_RIGHT;
     }
@@ -25,9 +25,11 @@ char invert_char(char char_to_invert) {
     if (INVERT_RIGHT == char_to_invert) {
         return INVERT_LEFT;
     }
+
+    return char_to_invert;
 }
 
-void encode_image(FILE *source_file, FILE *dest_file) {
+static void encode_image(FILE *source_file, FILE *dest_file) {
     if (!source_file || !dest_file) {
         return;
     }
@@ -42,7 +44,7 @@ void encode_image(FILE *source_file, FILE *dest_file) {
     RLEListDestroy(asii_art_list);
 }
 
-void invert_image(FILE *source_file, FILE *dest_file) {
+static void invert_image(FILE *source_file, FILE *dest_file) {
     if (!source_file || !dest_file) {
         return;
     }
@@ -65,7 +67,7 @@ int main(int argc, char *argv[]) {
     }
 
     AsciiModifyFunction modify_func = NULL;
-    switch (argv[ARGS_FLAGS][0]) {
+    switch (argv[ARGS_FLAGS][1]) {
     case ENCODED_FLAG:
         modify_func = encode_image;
         break;
@@ -83,7 +85,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    FILE *dest_file = fopen(argv[ARGS_DEST_FILE], "w");
+    FILE *dest_file = fopen(argv[ARGS_DEST_FILE], "w+");
     if (!dest_file) {
         fclose(source_file);
         return 0;

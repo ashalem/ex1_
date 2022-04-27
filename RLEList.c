@@ -9,23 +9,25 @@
 
 #define ENCODE_FOMAT ("%c%d\n")
 
-struct RLEList_t{
-    //TODO: implement
+// CR: Fix { spaces
+// CR: for each malloc do the casting
+// CR: Change to Camel case
+
+struct RLEList_t {
     char letter;
+    // CR: Fix name
     int num_in_row;
     RLEList next;
-
 };
 
-//implement the functions here
 
 RLEList RLEListCreate(){
-// RLEListCreate: Allocates a new empty RLE list.
-    RLEList ptr = malloc(sizeof(*ptr)); // Dynamic allocation.
-    if(!ptr){ // Checks if the pointer is null.
+    // CR: Change to list_ptr
+    RLEList ptr = (RLEList)malloc(sizeof(*ptr)); 
+    if(!ptr){ 
         return NULL; 
     }
-    //Allocations worked. Creating the Node.
+
     ptr->letter = 0;
     ptr->num_in_row = 0;
     ptr->next = NULL;
@@ -34,9 +36,13 @@ RLEList RLEListCreate(){
 }
 
 void RLEListDestroy(RLEList list){
-//RLEListDestroy: Deallocates an existing RLE list.
+    assert(list);
+    if (!list) {
+        return;
+    }
+
     while(list){
-        RLEList toDelete = list; //Enables us to free the entire RLElist.
+        RLEList toDelete = list;
         list = list->next;
         free(toDelete);
     }
@@ -44,59 +50,57 @@ void RLEListDestroy(RLEList list){
 }
 
 RLEListResult RLEListAppend(RLEList list, char value){
-//RLEListAppend: add a specified character at the end of the list.
     assert(list);
-    assert(value);
-    if(!list || !value){
+    if(!list) {
         return RLE_LIST_NULL_ARGUMENT;
     }
-    while(list->next){
-            list = list->next;
-        }
-    if(list->letter == 0 || list->letter == value){ // The char needs to be added to the list.
+
+    while(list->next) {
+        list = list->next;
+    }
+    if(list->letter == 0 || list->letter == value) { 
+        // The char needs to be added to the node.
         list->letter = value;
         list->num_in_row += 1;
         return RLE_LIST_SUCCESS;
     }
-    else{
-        RLEList newList = RLEListCreate();
-        if(!newList){
-            return RLE_LIST_OUT_OF_MEMORY;
-        }
-        list->next = newList;
-        newList->letter = value;
-        newList->num_in_row = 1;
-        newList->next = NULL;
-        return RLE_LIST_SUCCESS;
-
+    
+    // CR: create new static function that adds a new node in an end of the list
+    RLEList newList = RLEListCreate();
+    if(!newList){
+        return RLE_LIST_OUT_OF_MEMORY;
     }
+    list->next = newList;
+    newList->letter = value;
+    newList->num_in_row = 1;
+    newList->next = NULL;
+    return RLE_LIST_SUCCESS;
 }
 
 int RLEListSize(RLEList list){
-//RLEListSize: Returns the total number of characters in an RLE list.
-    int count_chars = 0;
     assert(list);
     if(!list){
         return NULL_POINTER;
     }
-    else{
-        while(list){
-            count_chars += list->num_in_row;
-            list = list->next;
-        }
-        return count_chars;
+
+    int count_chars = 0;
+    while(list){
+        count_chars += list->num_in_row;
+        list = list->next;
     }
+
+    return count_chars;
 }
 
 RLEListResult RLEListRemove(RLEList list, int index){
-    //RLEListRemove: Removes a character found at a specified index in an RLE list.
     int count_chars = 0;
     assert(list);
     assert(index >= 0);
-    if(!list || !index) {
+    if(!list) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
+    // CR: Fix name
     RLEList previus_node = list;
 
     while(list){
@@ -137,10 +141,10 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
         if((count_chars+list->num_in_row) > index){
             letter_to_get = list->letter;
             break;
-        }else {
-            count_chars += list->num_in_row;
-            list = list->next;
-        }
+        } 
+        count_chars += list->num_in_row;
+        list = list->next;
+        
     }
 
     if (!list) {

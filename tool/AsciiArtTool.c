@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "RLEList.h"
 #include "AsciiArtTool.h"
 
@@ -61,14 +62,16 @@ RLEListResult asciiArtPrintEncoded(RLEList list, FILE* out_stream)
 
     RLEListResult rlelist_ret = RLE_LIST_ERROR;
     char *encoded_art = RLEListExportToString(list, &rlelist_ret);
-    if (RLE_LIST_SUCCESS != rlelist_ret) {
+    if (!encoded_art || RLE_LIST_SUCCESS != rlelist_ret) {
         return rlelist_ret;
     }
 
     // TODO: Check what to do on error
     if (EOF == fputs(encoded_art, out_stream)) {
+        //free(encoded_art);
         return RLE_LIST_ERROR;
     }
 
+    //free(encoded_art);
     return RLE_LIST_SUCCESS;
 }

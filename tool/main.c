@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "RLEList.h"
 #include "AsciiArtTool.h"
 
@@ -9,8 +10,8 @@ typedef enum {
     ARGS_LAST
 } user_args_e;
 
-#define ENCODED_FLAG ('e')
-#define INVERTED_FLAG ('i')
+#define ENCODED_FLAG ("-e")
+#define INVERTED_FLAG ("-i")
 
 #define INVERT_RIGHT (' ')
 #define INVERT_LEFT ('@')
@@ -67,17 +68,15 @@ int main(int argc, char *argv[]) {
     }
 
     AsciiModifyFunction modify_func = NULL;
-    switch (argv[ARGS_FLAGS][1]) {
-    case ENCODED_FLAG:
+    char *flag = argv[ARGS_FLAGS];
+
+    if (0 == strncmp(flag, ENCODED_FLAG, sizeof(ENCODED_FLAG))) {
         modify_func = encode_image;
-        break;
-    case INVERTED_FLAG:
+    } else if (0 == strncmp(flag, INVERTED_FLAG, sizeof(INVERTED_FLAG))) {
         modify_func = invert_image;
-        break;
-    default:
+    } else {
         // Unknown flag
         return 0;
-        break;
     }
 
     FILE *source_file = fopen(argv[ARGS_SOURCE_FILE], "r");

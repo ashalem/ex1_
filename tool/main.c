@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "RLEList.h"
 #include "AsciiArtTool.h"
 
@@ -31,6 +32,8 @@ static char invert_char(char char_to_invert) {
 }
 
 static void encode_image(FILE *source_file, FILE *dest_file) {
+    assert(source_file);
+    assert(dest_file);
     if (!source_file || !dest_file) {
         return;
     }

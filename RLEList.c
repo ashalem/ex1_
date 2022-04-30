@@ -1,8 +1,8 @@
-#include "RLEList.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "RLEList.h"
 
 #define NULL_POINTER (-1)
 #define RLE_NOT_SUCCESS (0)

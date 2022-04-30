@@ -15,6 +15,31 @@ struct RLEList_t {
     RLEList next;
 };
 
+static void RLEListCopyNodes(RLEList node1, RLEList node2) {
+    //assert(node1);
+    //assert(node2);
+    if (!node1 || !node2) { 
+        return; 
+    }
+
+    node1->letter = node2->letter;
+    node1->letterCounter = node2->letterCounter;
+    node1->next = node2->next;
+}
+
+static void RLEListMergeSuccessiveNodes(RLEList node) {
+    //assert(node);
+    //assert(node->next);
+    if (!node || !node->next) { 
+        return; 
+    }
+
+    node->letterCounter += node->next->letterCounter;
+    RLEList deprecated_node = node->next;
+    node->next = node->next->next;
+    free(deprecated_node);
+}
+
 RLEList RLEListCreate() {
     RLEList listPtr = (RLEList)malloc(sizeof(*listPtr)); 
     if (!listPtr) { 
@@ -25,7 +50,6 @@ RLEList RLEListCreate() {
     listPtr->letterCounter = 0;
     listPtr->next = NULL;
     return listPtr;
-
 }
 
 void RLEListDestroy(RLEList list) {
@@ -39,7 +63,6 @@ void RLEListDestroy(RLEList list) {
         list = list->next;
         free(toDelete);
     }
-
 }
 
 static RLEList RLEListCreateNodeWithValue(char value)  {
@@ -54,6 +77,17 @@ static RLEList RLEListCreateNodeWithValue(char value)  {
     return newList;
 }
 
+static void RLEListRemoveFirstNode(RLEList list) {
+    if (list->next) {
+        RLEList deprecatedNode = list->next;
+        RLEListCopyNodes(list, deprecatedNode);
+        free(deprecatedNode);
+    } else {
+        // Last node in list
+        list->letter = 0;
+    }
+}
+
 RLEListResult RLEListAppend(RLEList list, char value) {
     //assert(list);
     if (!list) {
@@ -63,6 +97,7 @@ RLEListResult RLEListAppend(RLEList list, char value) {
     while (list->next) {
         list = list->next;
     }
+
     if (list->letter == 0 || list->letter == value) { 
         // The char needs to be added to the node.
         list->letter = value;
@@ -109,36 +144,30 @@ RLEListResult RLEListRemove(RLEList list, int index) {
     int countChars = 0;
 
     while (list) {
-        if ((countChars + list->letterCounter) > index) {
-            list->letterCounter--;
-            if(0 == list->letterCounter) { 
-                // Was a Lone char in it's own RLElist.
-                if (previousNode == list) {
-                    // There are more nodes
-                    if (list->next) {
-                        list->letter = list->next->letter;
-                        list->letterCounter = list->next->letterCounter;
-                        list->next = list->next->next;
-                    } else {
-                        list->letter = 0;
-                    }
-                } else {
-                    if (list->next && previousNode->letter == list->next->letter) {
-                        previousNode->letterCounter += list->next->letterCounter;
-                        previousNode->next = list->next->next;
-                        free(list->next);
-                    } else {
-                        previousNode->next = list->next;
-                    }
-                    free(list);
-                }
-            }
+        if ((countChars + list->letterCounter) <= index) {
+            countChars += list->letterCounter;
+            previousNode = list;
+            list = list->next;
+            continue;
+        }
+
+        list->letterCounter--;
+        if(0 != list->letterCounter) {  
+            return RLE_LIST_SUCCESS;
+        }
+        
+        if (previousNode == list) {
+            RLEListRemoveFirstNode(list);
             return RLE_LIST_SUCCESS;
         } 
 
-        countChars += list->letterCounter;
-        previousNode = list;
-        list = list->next;
+        // Not first node
+        previousNode->next = list->next;
+        if (list->next && previousNode->letter == previousNode->next->letter) {
+            RLEListMergeSuccessiveNodes(previousNode);
+        }
+        free(list);
+        return RLE_LIST_SUCCESS;
     }
 
     return RLE_LIST_INDEX_OUT_OF_BOUNDS;
@@ -255,9 +284,7 @@ RLEListResult RLEListMap(RLEList list, MapFunction map_function) {
         list->letter = map_function(list->letter);
 
         if (previousNode != list && previousNode->letter == list->letter) {
-            previousNode->letterCounter += list->letterCounter;
-            previousNode->next = list->next;
-            free(list);
+            RLEListMergeSuccessiveNodes(previousNode);
             list = previousNode->next;
         } else {
             previousNode = list;

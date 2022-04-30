@@ -68,10 +68,9 @@ RLEListResult asciiArtPrintEncoded(RLEList list, FILE* out_stream)
 
     // TODO: Check what to do on error
     if (EOF == fputs(encoded_art, out_stream)) {
-        //free(encoded_art);
         return RLE_LIST_ERROR;
     }
 
-    //free(encoded_art);
+    free(encoded_art);
     return RLE_LIST_SUCCESS;
 }

@@ -172,9 +172,9 @@ static int get_digits_len(int num)  {
 
 static int calc_encoded_list_len(RLEList list) {
     int len = 0;
-    while (!list)
+    while (list)
     {
-        len = 1 + get_digits_len(list->letterCounter) + 1;
+        len += 1 + get_digits_len(list->letterCounter) + 1;
         list = list->next;
     }
 

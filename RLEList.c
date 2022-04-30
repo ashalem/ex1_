@@ -4,11 +4,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define NULL_POINTER -1
-#define RLE_NOT_SUCCESS 0
+#define NULL_POINTER (-1)
+#define RLE_NOT_SUCCESS (0)
 
 #define ENCODE_FOMAT ("%c%d\n")
-
 
 struct RLEList_t {
     char letter;
@@ -16,10 +15,9 @@ struct RLEList_t {
     RLEList next;
 };
 
-
 RLEList RLEListCreate() {
     RLEList listPtr = (RLEList)malloc(sizeof(*listPtr)); 
-    if(!listPtr) { 
+    if (!listPtr) { 
         return NULL; 
     }
 
@@ -36,7 +34,7 @@ void RLEListDestroy(RLEList list) {
         return;
     }
 
-    while(list) {
+    while (list) {
         RLEList toDelete = list;
         list = list->next;
         free(toDelete);
@@ -44,9 +42,9 @@ void RLEListDestroy(RLEList list) {
 
 }
 
-static RLEList CreateRLEListWithValue(char value)  {
+static RLEList RLEListCreateNodeWithValue(char value)  {
     RLEList newList = (RLEList)malloc(sizeof(*newList)); 
-    if(!newList) {
+    if (!newList) {
         return NULL;
     }   
 
@@ -58,33 +56,37 @@ static RLEList CreateRLEListWithValue(char value)  {
 
 RLEListResult RLEListAppend(RLEList list, char value) {
     assert(list);
-    if(!list) {
+    if (!list) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
-    while(list->next) {
+    while (list->next) {
         list = list->next;
     }
-    if(list->letter == 0 || list->letter == value) { 
+    if (list->letter == 0 || list->letter == value) { 
         // The char needs to be added to the node.
         list->letter = value;
         list->letterCounter += 1;
         return RLE_LIST_SUCCESS;
     }
     
-    RLEList newList = CreateRLEListWithValue(value);
-    list->next = newList;
+    RLEList newNode = RLEListCreateNodeWithValue(value);
+    if (!newNode) {
+        return RLE_LIST_OUT_OF_MEMORY;
+    }
+
+    list->next = newNode;
     return RLE_LIST_SUCCESS;
 }
 
 int RLEListSize(RLEList list) {
     assert(list);
-    if(!list) {
+    if (!list) {
         return NULL_POINTER;
     }
 
     int countChars = 0;
-    while(list) {
+    while (list) {
         countChars += list->letterCounter;
         list = list->next;
     }
@@ -93,16 +95,16 @@ int RLEListSize(RLEList list) {
 }
 
 RLEListResult RLEListRemove(RLEList list, int index) {
-    int countChars = 0;
     assert(list);
     assert(index >= 0);
-    if(!list) {
+    if (!list) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
     RLEList previousNode = list;
+    int countChars = 0;
 
-    while(list) {
+    while (list) {
         if ((countChars + list->letterCounter) > index) {
             list->letterCounter--;
             if(0 == list->letterCounter) { 
@@ -119,32 +121,28 @@ RLEListResult RLEListRemove(RLEList list, int index) {
     }
 
     return RLE_LIST_INDEX_OUT_OF_BOUNDS;
-
 }
 
 char RLEListGet(RLEList list, int index, RLEListResult *result) {
-//RLEListGet: Returns the character found at a specified index in an RLE list.
-    int countChars = 0;
-    char letterToGet = 0;
     assert(list);
     assert(index >= 0);
-
-    if(!list) {
+    if (!list) {
         if (result) {
             *result = RLE_LIST_NULL_ARGUMENT;
         }
         return RLE_NOT_SUCCESS;
     }
 
-    while(list) {
-        if((countChars+list->letterCounter) > index) {
+    int countChars = 0;
+    char letterToGet = 0;
+    while (list) {
+        if ((countChars + list->letterCounter) > index) {
             letterToGet = list->letter;
             break;
         }
         
         countChars += list->letterCounter;
         list = list->next;
-        
     }
 
     if (!list) {
@@ -167,13 +165,14 @@ static int get_digits_len(int num)  {
         counter ++;
         num /= 10;
     }
+
     return counter;
 }
 
 static int calc_encoded_list_len(RLEList list) {
     int len = 0;
-    while (list)
-    {
+    while (list) {
+        // A letter len + digits + NewLine
         len += 1 + get_digits_len(list->letterCounter) + 1;
         list = list->next;
     }
@@ -182,7 +181,6 @@ static int calc_encoded_list_len(RLEList list) {
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result) {
-// RLEListExportToString: Returns the characters found in an RLE list as a string.
     assert(list);
     if(!list) {
         if(result) {
@@ -198,11 +196,19 @@ char* RLEListExportToString(RLEList list, RLEListResult* result) {
     
     while(list) {
         lettersWritten = sprintf(encodedList, ENCODE_FOMAT, list->letter, list->letterCounter);
+        if (lettersWritten < 0) {
+            if (result) {
+                *result = RLE_LIST_ERROR;
+            }
+
+            free(encodedHead);
+            return NULL;
+        }
         encodedList += lettersWritten;
         list = list->next;
     }
 
-    if(result) {
+    if (result) {
         *result = RLE_LIST_SUCCESS;
     }
     return encodedHead;
@@ -212,11 +218,11 @@ RLEListResult RLEListMap(RLEList list, MapFunction map_function) {
     assert(list);
     assert(map_function);
 
-    if(!list || !map_function) {
+    if (!list || !map_function) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
-    while(list) {
+    while (list) {
         list->letter = map_function(list->letter);
         list = list->next;
     }

@@ -29,7 +29,7 @@ RLEList RLEListCreate() {
 }
 
 void RLEListDestroy(RLEList list) {
-    assert(list);
+    //assert(list);
     if (!list) {
         return;
     }
@@ -55,7 +55,7 @@ static RLEList RLEListCreateNodeWithValue(char value)  {
 }
 
 RLEListResult RLEListAppend(RLEList list, char value) {
-    assert(list);
+    //assert(list);
     if (!list) {
         return RLE_LIST_NULL_ARGUMENT;
     }
@@ -80,7 +80,7 @@ RLEListResult RLEListAppend(RLEList list, char value) {
 }
 
 int RLEListSize(RLEList list) {
-    assert(list);
+    //assert(list);
     if (!list) {
         return NULL_POINTER;
     }
@@ -95,10 +95,14 @@ int RLEListSize(RLEList list) {
 }
 
 RLEListResult RLEListRemove(RLEList list, int index) {
-    assert(list);
-    assert(index >= 0);
+    //assert(list);
+    //assert(index >= 0);
     if (!list) {
         return RLE_LIST_NULL_ARGUMENT;
+    }
+
+    if (index < 0) {
+        return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
 
     RLEList previousNode = list;
@@ -109,8 +113,25 @@ RLEListResult RLEListRemove(RLEList list, int index) {
             list->letterCounter--;
             if(0 == list->letterCounter) { 
                 // Was a Lone char in it's own RLElist.
-                previousNode->next = list->next;
-                free(list);
+                if (previousNode == list) {
+                    // There are more nodes
+                    if (list->next) {
+                        list->letter = list->next->letter;
+                        list->letterCounter = list->next->letterCounter;
+                        list->next = list->next->next;
+                    } else {
+                        list->letter = 0;
+                    }
+                } else {
+                    if (list->next && previousNode->letter == list->next->letter) {
+                        previousNode->letterCounter += list->next->letterCounter;
+                        previousNode->next = list->next->next;
+                        free(list->next);
+                    } else {
+                        previousNode->next = list->next;
+                    }
+                    free(list);
+                }
             }
             return RLE_LIST_SUCCESS;
         } 
@@ -124,11 +145,18 @@ RLEListResult RLEListRemove(RLEList list, int index) {
 }
 
 char RLEListGet(RLEList list, int index, RLEListResult *result) {
-    assert(list);
-    assert(index >= 0);
+    //assert(list);
+    //assert(index >= 0);
     if (!list) {
         if (result) {
             *result = RLE_LIST_NULL_ARGUMENT;
+        }
+        return RLE_NOT_SUCCESS;
+    }
+
+    if (index < 0) {
+        if (result) {
+            *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
         }
         return RLE_NOT_SUCCESS;
     }
@@ -152,7 +180,7 @@ char RLEListGet(RLEList list, int index, RLEListResult *result) {
         return RLE_NOT_SUCCESS;
     }
 
-    if(result) {
+    if (result) {
         *result = RLE_LIST_SUCCESS;
     }
 
@@ -181,7 +209,7 @@ static int calc_encoded_list_len(RLEList list) {
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result) {
-    assert(list);
+    //assert(list);
     if(!list) {
         if(result) {
             *result = RLE_LIST_NULL_ARGUMENT;
@@ -215,16 +243,26 @@ char* RLEListExportToString(RLEList list, RLEListResult* result) {
 }
 
 RLEListResult RLEListMap(RLEList list, MapFunction map_function) {
-    assert(list);
-    assert(map_function);
+    //assert(list);
+    //assert(map_function);
 
     if (!list || !map_function) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
+    RLEList previousNode = list;
     while (list) {
         list->letter = map_function(list->letter);
-        list = list->next;
+
+        if (previousNode != list && previousNode->letter == list->letter) {
+            previousNode->letterCounter += list->letterCounter;
+            previousNode->next = list->next;
+            free(list);
+            list = previousNode->next;
+        } else {
+            previousNode = list;
+            list = list->next;
+        }
     }
 
     return RLE_LIST_SUCCESS;

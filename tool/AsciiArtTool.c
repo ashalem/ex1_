@@ -4,32 +4,32 @@
 #include "RLEList.h"
 #include "AsciiArtTool.h"
 
-RLEList asciiArtRead(FILE* inStream) {
-    assert(inStream);
-    if (!inStream) {
+RLEList asciiArtRead(FILE* in_stream) {
+    assert(in_stream);
+    if (!in_stream) {
         return NULL;
     }
 
     RLEList outList = RLEListCreate();
-    char asciiChar = (char)fgetc(inStream);
+    char asciiChar = (char)fgetc(in_stream);
     while (asciiChar != EOF) {
         if (RLE_LIST_SUCCESS != RLEListAppend(outList, asciiChar)) {
             RLEListDestroy(outList);
             return NULL;
         }
 
-        asciiChar = (char)fgetc(inStream);
+        asciiChar = (char)fgetc(in_stream);
     }
 
     return outList;
 }
 
 
-RLEListResult asciiArtPrint(RLEList list, FILE* outStream)
+RLEListResult asciiArtPrint(RLEList list, FILE* out_stream)
 {
     assert(list);
-    assert(outStream);
-    if (!list || !outStream) {
+    assert(out_stream);
+    if (!list || !out_stream) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
@@ -42,7 +42,7 @@ RLEListResult asciiArtPrint(RLEList list, FILE* outStream)
             return rlelistRet;
         }
 
-        if (EOF == fputc(charToWrite, outStream)) {
+        if (EOF == fputc(charToWrite, out_stream)) {
             return RLE_LIST_ERROR;
         }
     }
@@ -50,11 +50,11 @@ RLEListResult asciiArtPrint(RLEList list, FILE* outStream)
     return RLE_LIST_SUCCESS;
 }
 
-RLEListResult asciiArtPrintEncoded(RLEList list, FILE* outStream) 
+RLEListResult asciiArtPrintEncoded(RLEList list, FILE* out_stream) 
 {
     assert(list);
-    assert(outStream);
-    if (!list || !outStream) {
+    assert(out_stream);
+    if (!list || !out_stream) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
@@ -64,7 +64,7 @@ RLEListResult asciiArtPrintEncoded(RLEList list, FILE* outStream)
         return rlelistRet;
     }
 
-    if (EOF == fputs(encodedArt, outStream)) {
+    if (EOF == fputs(encodedArt, out_stream)) {
         free(encodedArt);
         return RLE_LIST_ERROR;
     }

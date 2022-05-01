@@ -19,50 +19,50 @@ typedef enum {
 
 typedef void (*AsciiModifyFunction)(FILE *, FILE *);
 
-static char invert_char(char char_to_invert) {
-    if (INVERT_LEFT == char_to_invert) {
+static char invert_char(char charToInvert) {
+    if (INVERT_LEFT == charToInvert) {
         return INVERT_RIGHT;
     }
 
-    if (INVERT_RIGHT == char_to_invert) {
+    if (INVERT_RIGHT == charToInvert) {
         return INVERT_LEFT;
     }
 
-    return char_to_invert;
+    return charToInvert;
 }
 
-static void encode_image(FILE *source_file, FILE *dest_file) {
-    assert(source_file);
-    assert(dest_file);
-    if (!source_file || !dest_file) {
+static void encodeImage(FILE *sourceFile, FILE *destFile) {
+    assert(sourceFile);
+    assert(destFile);
+    if (!sourceFile || !destFile) {
         return;
     }
 
-    RLEList asii_art_list = asciiArtRead(source_file);
-    if (!asii_art_list) {
+    RLEList asiiArtList = asciiArtRead(sourceFile);
+    if (!asiiArtList) {
         return;
     }
     
-    asciiArtPrintEncoded(asii_art_list, dest_file);
+    asciiArtPrintEncoded(asiiArtList, destFile);
 
-    RLEListDestroy(asii_art_list);
+    RLEListDestroy(asiiArtList);
 }
 
-static void invert_image(FILE *source_file, FILE *dest_file) {
-    if (!source_file || !dest_file) {
+static void invertImage(FILE *sourceFile, FILE *destFile) {
+    if (!sourceFile || !destFile) {
         return;
     }
 
-    RLEList asii_art_list = asciiArtRead(source_file);
-    if (!asii_art_list) {
+    RLEList asiiArtList = asciiArtRead(sourceFile);
+    if (!asiiArtList) {
         return;
     }
 
-    if (RLE_LIST_SUCCESS == RLEListMap(asii_art_list, invert_char)) {
-        asciiArtPrint(asii_art_list, dest_file);
+    if (RLE_LIST_SUCCESS == RLEListMap(asiiArtList, invert_char)) {
+        asciiArtPrint(asiiArtList, destFile);
     }
 
-    RLEListDestroy(asii_art_list);
+    RLEListDestroy(asiiArtList);
 }
 
 int main(int argc, char *argv[]) {
@@ -70,32 +70,32 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    AsciiModifyFunction modify_func = NULL;
+    AsciiModifyFunction modifyFunc = NULL;
     char *flag = argv[ARGS_FLAGS];
 
     if (0 == strncmp(flag, ENCODED_FLAG, sizeof(ENCODED_FLAG))) {
-        modify_func = encode_image;
+        modifyFunc = encodeImage;
     } else if (0 == strncmp(flag, INVERTED_FLAG, sizeof(INVERTED_FLAG))) {
-        modify_func = invert_image;
+        modifyFunc = invertImage;
     } else {
         // Unknown flag
         return 0;
     }
 
-    FILE *source_file = fopen(argv[ARGS_SOURCE_FILE], "r");
-    if (!source_file) {
+    FILE *sourceFile = fopen(argv[ARGS_SOURCE_FILE], "r");
+    if (!sourceFile) {
         return 0;
     }
 
-    FILE *dest_file = fopen(argv[ARGS_DEST_FILE], "w+");
-    if (!dest_file) {
-        fclose(source_file);
+    FILE *destFile = fopen(argv[ARGS_DEST_FILE], "w+");
+    if (!destFile) {
+        fclose(sourceFile);
         return 0;
     }
 
-    modify_func(source_file, dest_file);
+    modifyFunc(sourceFile, destFile);
    
-    fclose(dest_file);
-    fclose(source_file);
+    fclose(destFile);
+    fclose(sourceFile);
     return 0;
 }

@@ -16,8 +16,8 @@ struct RLEList_t {
 };
 
 static void RLEListCopyNodes(RLEList node1, RLEList node2) {
-    //assert(node1);
-    //assert(node2);
+    assert(node1);
+    assert(node2);
     if (!node1 || !node2) { 
         return; 
     }
@@ -28,16 +28,16 @@ static void RLEListCopyNodes(RLEList node1, RLEList node2) {
 }
 
 static void RLEListMergeSuccessiveNodes(RLEList node) {
-    //assert(node);
-    //assert(node->next);
+    assert(node);
+    assert(node->next);
     if (!node || !node->next) { 
         return; 
     }
 
     node->letterCounter += node->next->letterCounter;
-    RLEList deprecated_node = node->next;
+    RLEList deprecatedNode = node->next;
     node->next = node->next->next;
-    free(deprecated_node);
+    free(deprecatedNode);
 }
 
 RLEList RLEListCreate() {
@@ -53,7 +53,7 @@ RLEList RLEListCreate() {
 }
 
 void RLEListDestroy(RLEList list) {
-    //assert(list);
+    assert(list);
     if (!list) {
         return;
     }
@@ -89,7 +89,7 @@ static void RLEListRemoveFirstNode(RLEList list) {
 }
 
 RLEListResult RLEListAppend(RLEList list, char value) {
-    //assert(list);
+    assert(list);
     if (!list) {
         return RLE_LIST_NULL_ARGUMENT;
     }
@@ -115,7 +115,7 @@ RLEListResult RLEListAppend(RLEList list, char value) {
 }
 
 int RLEListSize(RLEList list) {
-    //assert(list);
+    assert(list);
     if (!list) {
         return NULL_POINTER;
     }
@@ -130,8 +130,8 @@ int RLEListSize(RLEList list) {
 }
 
 RLEListResult RLEListRemove(RLEList list, int index) {
-    //assert(list);
-    //assert(index >= 0);
+    assert(list);
+    assert(index >= 0);
     if (!list) {
         return RLE_LIST_NULL_ARGUMENT;
     }
@@ -174,8 +174,8 @@ RLEListResult RLEListRemove(RLEList list, int index) {
 }
 
 char RLEListGet(RLEList list, int index, RLEListResult *result) {
-    //assert(list);
-    //assert(index >= 0);
+    assert(list);
+    assert(index >= 0);
     if (!list) {
         if (result) {
             *result = RLE_LIST_NULL_ARGUMENT;
@@ -216,7 +216,7 @@ char RLEListGet(RLEList list, int index, RLEListResult *result) {
     return letterToGet;
 }
 
-static int get_digits_len(int num)  {
+static int getDigitsLen(int num)  {
     int counter = 1;
     while (0 != num / 10 ) {
         counter ++;
@@ -226,11 +226,11 @@ static int get_digits_len(int num)  {
     return counter;
 }
 
-static int calc_encoded_list_len(RLEList list) {
+static int calcEncodedListLen(RLEList list) {
     int len = 0;
     while (list) {
         // A letter len + digits + NewLine
-        len += 1 + get_digits_len(list->letterCounter) + 1;
+        len += 1 + getDigitsLen(list->letterCounter) + 1;
         list = list->next;
     }
 
@@ -238,7 +238,7 @@ static int calc_encoded_list_len(RLEList list) {
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result) {
-    //assert(list);
+    assert(list);
     if(!list) {
         if(result) {
             *result = RLE_LIST_NULL_ARGUMENT;
@@ -246,7 +246,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result) {
         return NULL;
     }
 
-    int encodedListLen = calc_encoded_list_len(list);
+    int encodedListLen = calcEncodedListLen(list);
     char* encodedList = (char *)malloc(encodedListLen + 1);
     char *encodedHead = encodedList;
     int lettersWritten = 0;
@@ -272,8 +272,8 @@ char* RLEListExportToString(RLEList list, RLEListResult* result) {
 }
 
 RLEListResult RLEListMap(RLEList list, MapFunction map_function) {
-    //assert(list);
-    //assert(map_function);
+    assert(list);
+    assert(map_function);
 
     if (!list || !map_function) {
         return RLE_LIST_NULL_ARGUMENT;

@@ -4,45 +4,45 @@
 #include "RLEList.h"
 #include "AsciiArtTool.h"
 
-RLEList asciiArtRead(FILE* in_stream) {
-    assert(in_stream);
-    if (!in_stream) {
+RLEList asciiArtRead(FILE* inStream) {
+    assert(inStream);
+    if (!inStream) {
         return NULL;
     }
 
-    RLEList out_list = RLEListCreate();
-    char ascii_char = (char)fgetc(in_stream);
-    while (ascii_char != EOF) {
-        if (RLE_LIST_SUCCESS != RLEListAppend(out_list, ascii_char)) {
-            RLEListDestroy(out_list);
+    RLEList outList = RLEListCreate();
+    char asciiChar = (char)fgetc(inStream);
+    while (asciiChar != EOF) {
+        if (RLE_LIST_SUCCESS != RLEListAppend(outList, asciiChar)) {
+            RLEListDestroy(outList);
             return NULL;
         }
 
-        ascii_char = (char)fgetc(in_stream);
+        asciiChar = (char)fgetc(inStream);
     }
 
-    return out_list;
+    return outList;
 }
 
 
-RLEListResult asciiArtPrint(RLEList list, FILE* out_stream)
+RLEListResult asciiArtPrint(RLEList list, FILE* outStream)
 {
     assert(list);
-    assert(out_stream);
-    if (!list || !out_stream) {
+    assert(outStream);
+    if (!list || !outStream) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
-    int list_size = RLEListSize(list);
-    char char_to_write = 0;
-    RLEListResult rlelist_ret = RLE_LIST_ERROR;
-    for (int i = 0; i < list_size; i++) {
-        char_to_write = RLEListGet(list, i, &rlelist_ret);
-        if (0 == char_to_write) {
-            return rlelist_ret;
+    int listSize = RLEListSize(list);
+    char charToWrite = 0;
+    RLEListResult rlelistRet = RLE_LIST_ERROR;
+    for (int i = 0; i < listSize; i++) {
+        charToWrite = RLEListGet(list, i, &rlelistRet);
+        if (0 == charToWrite) {
+            return rlelistRet;
         }
 
-        if (EOF == fputc(char_to_write, out_stream)) {
+        if (EOF == fputc(charToWrite, outStream)) {
             return RLE_LIST_ERROR;
         }
     }
@@ -50,25 +50,25 @@ RLEListResult asciiArtPrint(RLEList list, FILE* out_stream)
     return RLE_LIST_SUCCESS;
 }
 
-RLEListResult asciiArtPrintEncoded(RLEList list, FILE* out_stream) 
+RLEListResult asciiArtPrintEncoded(RLEList list, FILE* outStream) 
 {
     assert(list);
-    assert(out_stream);
-    if (!list || !out_stream) {
+    assert(outStream);
+    if (!list || !outStream) {
         return RLE_LIST_NULL_ARGUMENT;
     }
 
-    RLEListResult rlelist_ret = RLE_LIST_ERROR;
-    char *encoded_art = RLEListExportToString(list, &rlelist_ret);
-    if (!encoded_art || RLE_LIST_SUCCESS != rlelist_ret) {
-        return rlelist_ret;
+    RLEListResult rlelistRet = RLE_LIST_ERROR;
+    char *encodedArt = RLEListExportToString(list, &rlelistRet);
+    if (!encodedArt || RLE_LIST_SUCCESS != rlelistRet) {
+        return rlelistRet;
     }
 
-    if (EOF == fputs(encoded_art, out_stream)) {
-        free(encoded_art);
+    if (EOF == fputs(encodedArt, outStream)) {
+        free(encodedArt);
         return RLE_LIST_ERROR;
     }
 
-    free(encoded_art);
+    free(encodedArt);
     return RLE_LIST_SUCCESS;
 }

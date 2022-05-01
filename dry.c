@@ -9,6 +9,9 @@ char* stringDuplicator(char* str, int times) { // Conventions: s->str
     int len = strlen(str); // Conventions: changed LEN -> len
     char* out = malloc(len * times + 1); // Fixed an off by one (3)
     assert(out);
+    if (!out) {
+        return NULL;
+    }
     char *head = out; // Saved head (4)
     for (int i = 0; i < times; i++) { // fixed off by one (5)
         // Changed lines order (6)

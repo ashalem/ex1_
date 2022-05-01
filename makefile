@@ -2,7 +2,7 @@ CC=gcc
 MTM_HEADERS=/home/mtm/public/2122b/ex1
 OBJS=RLEList.o tool/AsciiArtTool.o tool/main.o
 EXEC=AsciiArtTool
-DEBUG_FLAG=-DDEBUG -g
+DEBUG_FLAG= -g
 CFLAGS=-std=c99 -Wall -pedantic-errors -Werror -I$(MTM_HEADERS) -Itool -DNDEBUG
 
 $(EXEC) : $(OBJS)
